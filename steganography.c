@@ -21,13 +21,49 @@
 //Determines what color the cell at the given row/col should be. This should not affect Image, and should allocate space for a new Color.
 Color *evaluateOnePixel(Image *image, int row, int col)
 {
-	//YOUR CODE HERE
+    int index = row * image->cols + col;
+    Color *color = image->image[index];
+    Color *newColor = (Color *)malloc(sizeof(*newColor));
+    if (newColor == NULL) 
+    { 
+        perror("Error malloc memory");
+        exit(EXIT_FAILURE);
+    }
+    uint8_t num = (color->B % 2) ? 255: 0; 
+    newColor->R = num;
+    newColor->G = num;
+    newColor->B = num;
+    return newColor;
 }
 
 //Given an image, creates a new image extracting the LSB of the B channel.
 Image *steganography(Image *image)
 {
-	//YOUR CODE HERE
+    Image *newImage = (Image *)malloc(sizeof(*newImage));
+    if (newImage == NULL)
+    {
+        perror("Error malloc memory");
+        exit(EXIT_FAILURE);
+    }
+
+    int rows = image->rows;
+    int cols = image->cols;
+    newImage->rows = rows;
+    newImage->cols = cols;
+
+    Color **colors = (Color **)malloc(rows * cols * sizeof(*colors));
+    if (colors == NULL)
+    {
+        perror("Error malloc memory");
+        exit(EXIT_FAILURE);
+    }
+
+    int index = 0;
+    for (int i = 0; i < rows; i++)
+        for (int j = 0; j < cols; j++)
+            colors[index++] = evaluateOnePixel(image, i, j);
+    newImage->image = colors;
+    return newImage;
 }
 
 /*
@@ -45,5 +81,15 @@ Make sure to free all memory before returning!
 */
 int main(int argc, char **argv)
 {
-	//YOUR CODE HERE
+	if (argc != 2)
+    {
+        printf("usage: steganography [ppm file]");
+        exit(EXIT_FAILURE);
+    }
+    Image *image = readData(argv[1]);
+    Image *newImage = steganography(image);
+    writeData(newImage);
+    freeImage(image);
+    freeImage(newImage);
+    exit(EXIT_SUCCESS);
 }
